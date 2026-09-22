@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL 16 Database
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: enterprise_ticketing_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_enterprise_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-ticketing_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ticketing_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - enterprise_network
+
+  # ---------------------------------------------------------------------------
+  # 2. FastAPI Backend API & Automation Engine
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: enterprise_ticketing_backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_enterprise_secret}@db:5432/${POSTGRES_DB:-ticketing_db}
+      SECRET_KEY: ${SECRET_KEY:-enterprise-super-secret-key-change-in-production-workflow-fsm-2026}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
+      ENVIRONMENT: production
+      DEBUG: "False"
+      SERVER_HOST: ${SERVER_HOST:-http://localhost:8000}
+      FRONTEND_HOST: ${FRONTEND_HOST:-http://localhost:3000}
+      FIRST_SUPERUSER_EMAIL: ${FIRST_SUPERUSER_EMAIL:-admin@enterprise.local}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD:-AdminPassword123!}
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+    networks:
+      - enterprise_network
+
+  # ---------------------------------------------------------------------------
+  # 3. Next.js 14 Frontend Web Application
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./enterprise_ticketing_web
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+    container_name: enterprise_ticketing_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - enterprise_network
+
+# -----------------------------------------------------------------------------
+# Persistent Volumes & Network Configuration
+# -----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  enterprise_network:
+    driver: bridge
