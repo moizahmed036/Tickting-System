@@ -223,3 +223,78 @@ async def test_strict_department_isolation_and_rbac(async_client: AsyncClient):
     assert admin_get_ticket.status_code == 200
     assert admin_get_ticket.json()["id"] == fin_ticket_id
 
+
+@pytest.mark.asyncio
+async def test_internal_notes_and_comments_visibility(async_client: AsyncClient):
+    requester_token = await get_auth_token(async_client, "requester@enterprise.local", "RequesterPass123!")
+    fin_agent_token = await get_auth_token(async_client, "fin.agent@enterprise.local", "AgentPass123!")
+    admin_token = await get_auth_token(async_client, "admin@enterprise.local", "AdminPassword123!")
+
+    # 1. Get FIN department
+    depts_res = await async_client.get(
+        "/api/v1/workflows/departments",
+        headers={"Authorization": f"Bearer {requester_token}"},
+    )
+    fin_dept = next(d for d in depts_res.json() if d["code"] == "FIN")
+
+    # 2. Requester creates ticket
+    create_res = await async_client.post(
+        "/api/v1/tickets/",
+        json={
+            "title": "Expense Reimbursement Travel",
+            "description": "Travel receipts attached.",
+            "priority": "MEDIUM",
+            "department_id": fin_dept["id"],
+        },
+        headers={"Authorization": f"Bearer {requester_token}"},
+    )
+    assert create_res.status_code == 201
+    ticket_id = create_res.json()["id"]
+
+    # 3. Requester posts public comment -> 200 OK
+    pub_res = await async_client.post(
+        f"/api/v1/tickets/{ticket_id}/comments",
+        json={"comment": "Please expedite this expense reimbursement.", "is_internal": False},
+        headers={"Authorization": f"Bearer {requester_token}"},
+    )
+    assert pub_res.status_code == 200
+    assert pub_res.json()["is_internal"] is False
+
+    # 4. Requester attempts to post internal staff note -> 403 Forbidden
+    forbid_res = await async_client.post(
+        f"/api/v1/tickets/{ticket_id}/comments",
+        json={"comment": "I am trying to write internal note", "is_internal": True},
+        headers={"Authorization": f"Bearer {requester_token}"},
+    )
+    assert forbid_res.status_code == 403
+
+    # 5. Finance Agent posts internal staff note -> 200 OK
+    int_res = await async_client.post(
+        f"/api/v1/tickets/{ticket_id}/comments",
+        json={"comment": "Internal audit check: invoice amount exceeds standard threshold.", "is_internal": True},
+        headers={"Authorization": f"Bearer {fin_agent_token}"},
+    )
+    assert int_res.status_code == 200
+    assert int_res.json()["is_internal"] is True
+
+    # 6. Finance Agent views audit trail -> sees internal note
+    agent_trail = await async_client.get(
+        f"/api/v1/tickets/{ticket_id}/audit-trail",
+        headers={"Authorization": f"Bearer {fin_agent_token}"},
+    )
+    assert agent_trail.status_code == 200
+    agent_logs = agent_trail.json()
+    assert any(log["is_internal"] is True for log in agent_logs)
+
+    # 7. Requester views audit trail -> internal note is filtered out!
+    req_trail = await async_client.get(
+        f"/api/v1/tickets/{ticket_id}/audit-trail",
+        headers={"Authorization": f"Bearer {requester_token}"},
+    )
+    assert req_trail.status_code == 200
+    req_logs = req_trail.json()
+    assert all(log["is_internal"] is False for log in req_logs)
+    assert any(log["comment"] == "Please expedite this expense reimbursement." for log in req_logs)
+    assert not any(log["comment"] == "Internal audit check: invoice amount exceeds standard threshold." for log in req_logs)
+
+

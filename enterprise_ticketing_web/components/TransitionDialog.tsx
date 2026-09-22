@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, ArrowRight, Plus, Trash2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Plus, Trash2, ShieldCheck, AlertCircle, Play } from 'lucide-react';
 import { AvailableTransition, Ticket, TicketState } from '@/lib/types';
 import { getStateBadge } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -56,7 +56,6 @@ export function TransitionDialog({
 
     const patch: Record<string, any> = {};
     metadataEntries.forEach((entry) => {
-      // Try to parse numbers or booleans if applicable
       if (!isNaN(Number(entry.value)) && entry.value !== '') {
         patch[entry.key] = Number(entry.value);
       } else if (entry.value.toLowerCase() === 'true') {
@@ -73,7 +72,7 @@ export function TransitionDialog({
       onSuccess(updated);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to execute transition');
+      setError(err.message || 'Failed to execute workflow transition');
     } finally {
       setLoading(false);
     }
@@ -88,43 +87,43 @@ export function TransitionDialog({
       isOpen={isOpen}
       onClose={onClose}
       title={transition.name}
-      description={`Transition ticket ${ticket.ticket_number} to state ${transition.to_state}`}
+      description={`Executing workflow transition on ticket ${ticket.ticket_number}`}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Transition State Visualizer */}
-        <div className="flex items-center justify-center gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+        {/* Transition State Flow Indicator */}
+        <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-zinc-950 border border-zinc-800/80">
           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${currentBadge.bg} ${currentBadge.text} ${currentBadge.border}`}>
             {currentBadge.label}
           </span>
-          <ArrowRight className="h-4 w-4 text-slate-500" />
+          <ArrowRight className="h-4 w-4 text-zinc-500" />
           <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${targetBadge.bg} ${targetBadge.text} ${targetBadge.border}`}>
             {targetBadge.label}
           </span>
         </div>
 
         {/* Required Role & Permission Check */}
-        <div className="flex items-center justify-between text-xs px-1 text-slate-400">
+        <div className="flex items-center justify-between text-xs px-1 text-zinc-400">
           <span className="flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 text-indigo-400" />
-            Required Authority: <strong className="text-slate-200">{transition.required_role}</strong>
+            Authorized Role: <strong className="text-zinc-200">{transition.required_role}</strong>
           </span>
           {transition.is_allowed ? (
-            <span className="text-emerald-400 font-medium">✓ Authorized</span>
+            <span className="text-emerald-400 font-medium">✓ Clearance Verified</span>
           ) : (
-            <span className="text-rose-400 font-medium">✗ {transition.reason || 'Not Authorized'}</span>
+            <span className="text-rose-400 font-medium">✗ {transition.reason || 'Unauthorized'}</span>
           )}
         </div>
 
         {/* Justification / Audit Comment */}
         <Textarea
-          label="Audit Justification / Comment (Required for Decision History)"
+          label="Audit Justification / Decision Comment"
           placeholder={
             isApproval
-              ? 'e.g. Budget approved within department Q1 allocation limits.'
+              ? 'e.g. Budget requisition approved within department Q1 allocation.'
               : isRejection
-              ? 'e.g. Requisition rejected due to insufficient vendor documentation.'
-              : 'Add optional notes for this transition...'
+              ? 'e.g. Requisition rejected due to missing vendor quote documentation.'
+              : 'Add required justification notes for the audit trail...'
           }
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -132,33 +131,33 @@ export function TransitionDialog({
         />
 
         {/* Metadata Patch Builder */}
-        <div className="space-y-2 pt-2 border-t border-slate-800">
-          <label className="text-xs font-medium text-slate-300">Attach Decision Attributes / Metadata (Optional)</label>
+        <div className="space-y-2 pt-2 border-t border-zinc-800/80">
+          <label className="text-xs font-medium text-zinc-300">Decision Attributes & Metadata (Optional)</label>
           <div className="flex items-center gap-2">
             <input
               placeholder="Key (e.g. po_number, budget_code)"
               value={metaKey}
               onChange={(e) => setMetaKey(e.target.value)}
-              className="flex h-9 w-1/2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-white"
+              className="flex h-8 w-1/2 rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
             />
             <input
               placeholder="Value (e.g. PO-84920, Approved)"
               value={metaValue}
               onChange={(e) => setMetaValue(e.target.value)}
-              className="flex h-9 w-1/2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-white"
+              className="flex h-8 w-1/2 rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
             />
             <Button type="button" size="sm" variant="secondary" onClick={handleAddMeta}>
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3.5 w-3.5" />
             </Button>
           </div>
 
           {metadataEntries.length > 0 && (
             <div className="space-y-1 mt-2">
               {metadataEntries.map((entry, idx) => (
-                <div key={idx} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-800 text-xs">
-                  <span className="font-mono text-indigo-300">{entry.key}:</span>
-                  <span className="text-slate-200 truncate max-w-[200px]">{entry.value}</span>
-                  <button type="button" onClick={() => handleRemoveMeta(idx)} className="text-slate-400 hover:text-rose-400">
+                <div key={idx} className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-xs">
+                  <span className="font-mono text-indigo-400 font-semibold">{entry.key}:</span>
+                  <span className="text-zinc-200 truncate max-w-[200px]">{entry.value}</span>
+                  <button type="button" onClick={() => handleRemoveMeta(idx)} className="text-zinc-500 hover:text-rose-400 p-1 cursor-pointer">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -168,14 +167,14 @@ export function TransitionDialog({
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
+          <div className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-zinc-800/80">
           <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             Cancel
           </Button>

@@ -8,6 +8,8 @@ from app.models.ticket import Ticket, TicketPriority, TicketState
 from app.models.workflow import WorkflowStep
 from app.models.audit import TicketAuditLog, AuditAction
 from app.models.recurring import RecurringWorkflow
+from app.models.attachment import TicketAttachment
+from app.models.api_key import ApiKey
 
 __all__ = [
     "Base",
@@ -21,4 +23,6 @@ __all__ = [
     "TicketAuditLog",
     "AuditAction",
     "RecurringWorkflow",
+    "TicketAttachment",
+    "ApiKey",
 ]

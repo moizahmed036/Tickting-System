@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from app.models.department import Department
     from app.models.user import User
     from app.models.audit import TicketAuditLog
+    from app.models.attachment import TicketAttachment
 
 
 class TicketPriority(str, enum.Enum):
@@ -139,6 +140,12 @@ class Ticket(Base):
         back_populates="ticket",
         cascade="all, delete-orphan",
         order_by="TicketAuditLog.created_at.asc()",
+    )
+    attachments: Mapped[List["TicketAttachment"]] = relationship(
+        "TicketAttachment",
+        back_populates="ticket",
+        cascade="all, delete-orphan",
+        order_by="TicketAttachment.created_at.desc()",
     )
 
     def __repr__(self) -> str:

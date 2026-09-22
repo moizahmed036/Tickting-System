@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Enum as SAEnum,
     ForeignKey,
@@ -33,7 +34,8 @@ class AuditAction(str, enum.Enum):
     COMMENT_ADDED = "COMMENT_ADDED"
     ESCALATED = "ESCALATED"
     NOTIFICATION_SENT = "NOTIFICATION_SENT"
-
+    ATTACHMENT_ADDED = "ATTACHMENT_ADDED"
+    ATTACHMENT_DELETED = "ATTACHMENT_DELETED"
 
 
 class TicketAuditLog(Base):
@@ -70,6 +72,12 @@ class TicketAuditLog(Base):
         nullable=True,
     )
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    is_internal: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
+    )
     payload: Mapped[Dict[str, Any]] = mapped_column(
         JSON,
         default=dict,
@@ -94,5 +102,5 @@ class TicketAuditLog(Base):
     def __repr__(self) -> str:
         return (
             f"<TicketAuditLog id={self.id} ticket_id={self.ticket_id} "
-            f"action='{self.action.value}' actor_id={self.actor_id}>"
+            f"action='{self.action.value}' actor_id={self.actor_id} is_internal={self.is_internal}>"
         )

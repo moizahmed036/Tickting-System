@@ -17,7 +17,10 @@ import {
   Flame,
   Check,
   Building2,
+  Inbox,
+  Filter,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface EmailTaskWidgetProps {
   onTicketCreated?: () => void;
@@ -74,7 +77,7 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
       setActionLoading((prev) => ({ ...prev, [emailId]: 'convert' }));
       const res = await api.convertEmailToTicket(emailId);
       showToast(`Created Ticket ${res.ticket_number} (${res.department_code})`, 'success');
-      
+
       // Optimistically remove from state
       setData((prev) => {
         const remaining = prev.items.filter((item) => item.id !== emailId);
@@ -103,7 +106,7 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
     try {
       setActionLoading((prev) => ({ ...prev, [emailId]: 'resolve' }));
       await api.markEmailResolved(emailId);
-      showToast('Email task marked as resolved', 'info');
+      showToast('Email task dismissed as completed', 'info');
 
       // Optimistically remove
       setData((prev) => {
@@ -134,25 +137,25 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
     switch (priority) {
       case 'CRITICAL':
         return {
-          badge: 'bg-red-500/15 border-red-500/40 text-red-400',
-          border: 'border-l-red-500',
-          dot: 'bg-red-500',
+          badge: 'bg-rose-500/10 border-rose-500/25 text-rose-400',
+          border: 'border-l-rose-500',
+          dot: 'bg-rose-500',
         };
       case 'HIGH':
         return {
-          badge: 'bg-amber-500/15 border-amber-500/40 text-amber-400',
+          badge: 'bg-amber-500/10 border-amber-500/25 text-amber-400',
           border: 'border-l-amber-500',
           dot: 'bg-amber-500',
         };
       case 'MEDIUM':
         return {
-          badge: 'bg-yellow-500/15 border-yellow-500/40 text-yellow-400',
+          badge: 'bg-yellow-500/10 border-yellow-500/25 text-yellow-400',
           border: 'border-l-yellow-500',
           dot: 'bg-yellow-500',
         };
       default:
         return {
-          badge: 'bg-blue-500/15 border-blue-500/40 text-blue-400',
+          badge: 'bg-blue-500/10 border-blue-500/25 text-blue-400',
           border: 'border-l-blue-500',
           dot: 'bg-blue-500',
         };
@@ -172,7 +175,7 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
       case 'PROC':
         return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
       default:
-        return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+        return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
     }
   };
 
@@ -191,173 +194,178 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
   };
 
   return (
-    <div className="relative bg-slate-900/90 border border-slate-800/90 rounded-2xl p-5 md:p-6 shadow-2xl backdrop-blur-xl mb-8 overflow-hidden transition-all">
-      {/* Decorative ambient background glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-10 w-80 h-28 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-zinc-900/70 border border-zinc-800/80 rounded-2xl p-4 lg:p-5 shadow-xl backdrop-blur-xl mb-6 overflow-hidden transition-all">
+      {/* Subtle ambient lighting */}
+      <div className="absolute top-0 right-1/4 w-80 h-24 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-10 w-72 h-20 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-sm animate-in fade-in slide-in-from-top-2">
+        <div className="mb-4 flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-emerald-950/90 border border-emerald-500/30 text-emerald-300 text-xs animate-fade-in">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="font-medium">{toastMessage.text}</span>
           </div>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-emerald-400 hover:text-emerald-200 text-xs uppercase tracking-wider font-bold"
+            className="text-emerald-400 hover:text-emerald-200 text-[10px] uppercase font-bold tracking-wider cursor-pointer"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Header & Metric Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-zinc-800/80">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white">
-            <Mail className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-sm shadow-indigo-600/30 text-white shrink-0">
+            <Mail className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white tracking-tight">AI Email Ingestion & Actionable Tasks</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-                <Sparkles className="w-3 h-3 text-indigo-400" />
-                Live Triage
+              <h2 className="text-sm font-bold text-white tracking-tight">AI Email Ingestion & Smart Triage</h2>
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono">
+                <Sparkles className="w-2.5 h-2.5 text-indigo-400" />
+                Live NLP
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              Autonomous inbox ingestion with NLP priority detection and 1-click ticket generation.
+            <p className="text-[11px] text-zinc-400">
+              Inbound messages triaged with entity extraction and 1-click ticket generation.
             </p>
           </div>
         </div>
 
         {/* Sync & Timestamp Controls */}
-        <div className="flex items-center gap-3 self-end lg:self-auto">
-          <span className="text-[11px] text-slate-400 flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
+        <div className="flex items-center gap-2.5 self-end sm:self-auto">
+          <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
+            <Clock className="w-3 h-3 text-zinc-600" />
             Synced {formatRelativeTime(lastUpdated.toISOString())}
           </span>
           <button
             onClick={() => fetchPendingEmails(true)}
             disabled={syncing}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-medium transition-all active:scale-95 disabled:opacity-60"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-zinc-850 hover:bg-zinc-800 border border-zinc-750 text-zinc-300 text-[11px] font-medium transition-all active:scale-95 disabled:opacity-50 cursor-pointer"
             title="Scan inbox now"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-blue-400' : 'text-slate-400'}`} />
-            <span>{syncing ? 'Syncing...' : 'Sync Now'}</span>
+            <RefreshCw className={`w-3 h-3 ${syncing ? 'animate-spin text-indigo-400' : 'text-zinc-400'}`} />
+            <span>{syncing ? 'Syncing...' : 'Sync'}</span>
           </button>
         </div>
       </div>
 
       {/* Metric Pill Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 py-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 py-3">
         <button
           onClick={() => setFilterPriority('ALL')}
-          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+          className={cn(
+            'flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none',
             filterPriority === 'ALL'
-              ? 'bg-slate-800 border-blue-500/50 shadow-md shadow-blue-500/10 text-white font-bold'
-              : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/50'
-          }`}
+              ? 'bg-zinc-800 border-zinc-700 text-white font-semibold shadow-sm'
+              : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:bg-zinc-850/60'
+          )}
         >
-          <span className="flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5 text-slate-400" />
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <Inbox className="w-3.5 h-3.5 text-zinc-500" />
             All Actions
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-200 font-mono text-[11px] font-bold">
+          <span className="px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-300 font-mono text-[10px] font-bold border border-zinc-800">
             {data.total_pending}
           </span>
         </button>
 
         <button
           onClick={() => setFilterPriority('CRITICAL')}
-          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+          className={cn(
+            'flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none',
             filterPriority === 'CRITICAL'
-              ? 'bg-red-950/40 border-red-500 text-red-300 font-bold shadow-md shadow-red-500/10'
-              : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/50'
-          }`}
+              ? 'bg-rose-500/15 border-rose-500/40 text-rose-300 font-semibold'
+              : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:bg-zinc-850/60'
+          )}
         >
-          <span className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
             </span>
             Critical
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 font-mono text-[11px] font-bold">
+          <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 font-mono text-[10px] font-bold">
             {data.critical_count}
           </span>
         </button>
 
         <button
           onClick={() => setFilterPriority('HIGH')}
-          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+          className={cn(
+            'flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none',
             filterPriority === 'HIGH'
-              ? 'bg-amber-950/40 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
-              : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/50'
-          }`}
+              ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold'
+              : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:bg-zinc-850/60'
+          )}
         >
-          <span className="flex items-center gap-1.5">
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <Flame className="w-3 h-3 text-amber-400" />
             High
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-mono text-[11px] font-bold">
+          <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 font-mono text-[10px] font-bold">
             {data.high_count}
           </span>
         </button>
 
         <button
           onClick={() => setFilterPriority('MEDIUM')}
-          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+          className={cn(
+            'flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none',
             filterPriority === 'MEDIUM'
-              ? 'bg-yellow-950/40 border-yellow-500 text-yellow-300 font-bold shadow-md shadow-yellow-500/10'
-              : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/50'
-          }`}
+              ? 'bg-yellow-500/15 border-yellow-500/40 text-yellow-300 font-semibold'
+              : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:bg-zinc-850/60'
+          )}
         >
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-yellow-400" />
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
             Medium
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-yellow-500/20 text-yellow-400 font-mono text-[11px] font-bold">
+          <span className="px-1.5 py-0.2 rounded bg-yellow-500/20 text-yellow-400 font-mono text-[10px] font-bold">
             {data.medium_count}
           </span>
         </button>
 
         <button
           onClick={() => setFilterPriority('NORMAL')}
-          className={`flex items-center justify-between p-2.5 rounded-xl border text-xs transition-all ${
+          className={cn(
+            'flex items-center justify-between px-2.5 py-1.5 rounded-lg border text-xs transition-all cursor-pointer select-none',
             filterPriority === 'NORMAL'
-              ? 'bg-blue-950/40 border-blue-500 text-blue-300 font-bold shadow-md shadow-blue-500/10'
-              : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/50'
-          }`}
+              ? 'bg-blue-500/15 border-blue-500/40 text-blue-300 font-semibold'
+              : 'bg-zinc-950/60 border-zinc-850 text-zinc-400 hover:bg-zinc-850/60'
+          )}
         >
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
+          <span className="flex items-center gap-1.5 text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
             Normal
           </span>
-          <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-mono text-[11px] font-bold">
+          <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 font-mono text-[10px] font-bold">
             {data.normal_count}
           </span>
         </button>
       </div>
 
-      {/* Actionable Email Cards Stream */}
-      <div className="space-y-3 pt-1">
+      {/* Actionable Email Cards */}
+      <div className="space-y-2 pt-1">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-            <RefreshCw className="w-6 h-6 animate-spin text-blue-500 mb-2" />
+          <div className="flex flex-col items-center justify-center py-8 text-zinc-400">
+            <RefreshCw className="w-5 h-5 animate-spin text-indigo-500 mb-2" />
             <span className="text-xs">Analyzing incoming mailboxes with AI...</span>
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-dashed border-slate-800 text-center bg-slate-900/40">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2.5">
-              <Check className="w-6 h-6" />
+          <div className="flex flex-col items-center justify-center py-8 px-4 rounded-xl border border-dashed border-zinc-800 text-center bg-zinc-950/40">
+            <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-2">
+              <Check className="w-5 h-5" />
             </div>
-            <h4 className="text-sm font-bold text-white">All Caught Up!</h4>
-            <p className="text-xs text-slate-400 max-w-sm mt-1">
+            <h4 className="text-xs font-bold text-zinc-200">Inbox Zero Reached</h4>
+            <p className="text-[11px] text-zinc-500 max-w-sm mt-0.5">
               {filterPriority !== 'ALL'
                 ? `No pending ${filterPriority.toLowerCase()} priority email action items detected.`
-                : 'No pending email action items require your attention right now.'}
+                : 'All inbound messages have been converted into active tickets or resolved.'}
             </p>
           </div>
         ) : (
@@ -370,95 +378,95 @@ export const EmailTaskWidget: React.FC<EmailTaskWidgetProps> = ({ onTicketCreate
             return (
               <div
                 key={item.id}
-                className={`bg-slate-950/70 border border-slate-800/90 rounded-xl p-4 transition-all hover:border-slate-700/90 border-l-4 ${style.border} group`}
+                className={`bg-zinc-950/80 border border-zinc-850 rounded-xl p-3.5 transition-all hover:border-zinc-750 border-l-4 ${style.border} group`}
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
                   {/* Left Metadata & AI Summary */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1.5">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border uppercase tracking-wider ${style.badge}`}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold border uppercase tracking-wider ${style.badge}`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
                         {item.priority}
                       </span>
 
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${getDeptColor(
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-semibold border ${getDeptColor(
                           item.suggested_department
                         )}`}
                       >
                         <Building2 className="w-3 h-3" />
-                        Dept: {item.suggested_department}
+                        Queue: {item.suggested_department}
                       </span>
 
-                      <span className="text-[11px] text-slate-400">
-                        From: <span className="text-slate-200 font-medium">{item.sender_name}</span> ({item.sender})
+                      <span className="text-[11px] text-zinc-400">
+                        From: <span className="text-zinc-200 font-medium">{item.sender_name}</span> ({item.sender})
                       </span>
 
-                      <span className="text-[11px] text-slate-500 ml-auto md:ml-0">
+                      <span className="text-[10px] font-mono text-zinc-500 ml-auto md:ml-0">
                         {formatRelativeTime(item.timestamp)}
                       </span>
                     </div>
 
-                    {/* AI One-Line Summary */}
-                    <div className="flex items-start gap-2 mt-2">
-                      <div className="mt-0.5 flex-shrink-0 text-indigo-400 bg-indigo-500/10 p-1 rounded-md border border-indigo-500/20">
-                        <Sparkles className="w-3.5 h-3.5" />
+                    {/* AI Summary */}
+                    <div className="flex items-start gap-2 mt-1.5">
+                      <div className="mt-0.5 shrink-0 text-indigo-400 bg-indigo-500/10 p-1 rounded border border-indigo-500/20">
+                        <Sparkles className="w-3 h-3" />
                       </div>
-                      <p className="text-sm font-semibold text-slate-100 leading-snug">
+                      <p className="text-xs font-semibold text-zinc-100 leading-snug">
                         {item.summary}
                       </p>
                     </div>
 
                     {/* Original Subject */}
-                    <p className="text-xs text-slate-400 mt-1 pl-7">
-                      <span className="text-slate-500 font-mono text-[10px]">RE:</span> {item.subject}
+                    <p className="text-[11px] text-zinc-400 mt-1 pl-6">
+                      <span className="text-zinc-500 font-mono text-[10px]">RE:</span> {item.subject}
                     </p>
 
                     {/* Expandable Body Snippet */}
                     {isExpanded && (
-                      <div className="mt-3 pl-7 pt-2 border-t border-slate-800 text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-3 rounded-lg border border-slate-800/80 animate-in fade-in">
-                        <p className="font-mono text-[10px] text-slate-500 uppercase mb-1">Email Body Content:</p>
+                      <div className="mt-2.5 pl-6 pt-2 border-t border-zinc-850 text-xs text-zinc-300 leading-relaxed bg-zinc-900/60 p-2.5 rounded-lg border border-zinc-800/80 animate-fade-in font-mono text-[11px]">
+                        <p className="font-mono text-[10px] text-zinc-500 uppercase mb-1">Email Body Content:</p>
                         {item.body}
                       </div>
                     )}
                   </div>
 
                   {/* Right Action Buttons */}
-                  <div className="flex items-center gap-2 self-end md:self-center flex-shrink-0 pt-2 md:pt-0">
+                  <div className="flex items-center gap-1.5 self-end md:self-center shrink-0 pt-1 md:pt-0">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                      className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg text-xs transition"
+                      className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850 rounded-lg text-xs transition cursor-pointer"
                       title={isExpanded ? 'Collapse' : 'Expand full body'}
                     >
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
 
                     <button
                       onClick={() => handleMarkResolved(item.id)}
                       disabled={isResolving || isConverting}
-                      className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 text-xs font-medium transition active:scale-95 disabled:opacity-50"
+                      className="px-2.5 py-1 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 text-[11px] font-medium transition active:scale-95 disabled:opacity-50 cursor-pointer"
                       title="Dismiss from pending tasks"
                     >
-                      {isResolving ? 'Done...' : 'Mark as Done'}
+                      {isResolving ? 'Resolving...' : 'Dismiss'}
                     </button>
 
                     <button
                       onClick={() => handleConvertToTicket(item.id)}
                       disabled={isConverting || isResolving}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition active:scale-95 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold shadow-sm shadow-indigo-600/30 transition active:scale-95 disabled:opacity-50 cursor-pointer"
                       title="Convert directly to an official system Ticket"
                     >
                       {isConverting ? (
                         <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <RefreshCw className="w-3 h-3 animate-spin" />
                           <span>Converting...</span>
                         </>
                       ) : (
                         <>
                           <span>Convert to Ticket</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <ArrowRight className="w-3 h-3" />
                         </>
                       )}
                     </button>

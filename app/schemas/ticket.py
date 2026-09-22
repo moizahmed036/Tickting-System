@@ -16,11 +16,17 @@ class AuditLogResponse(BaseModel):
     from_state: Optional[TicketState] = None
     to_state: Optional[TicketState] = None
     comment: Optional[str] = None
+    is_internal: bool = False
     payload: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
     actor: Optional[UserResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CommentCreate(BaseModel):
+    comment: str = Field(..., min_length=1, max_length=5000)
+    is_internal: bool = Field(False, description="True for staff-only internal notes, False for public comments")
 
 
 class TicketBase(BaseModel):

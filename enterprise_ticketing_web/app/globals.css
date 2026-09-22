@@ -3,81 +3,254 @@
 @tailwind utilities;
 
 @layer base {
+  /* ========================================================================= */
+  /* LIGHT MODE (Default Baseline)                                             */
+  /* ========================================================================= */
   :root {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 240 5% 96%;
+    --foreground: 240 10% 3.9%;
 
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
 
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 238.7 83.5% 66.7%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 238.7 75% 55%;
+    --primary-700: 238.7 70% 45%;
 
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 4.8% 90%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 4.8% 90%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 217 32% 20%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 4.8% 92%;
+    --accent-foreground: 240 5.9% 10%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217 32% 22%;
-    --input: 217 32% 22%;
-    --ring: 224 76% 48%;
+    --border: 240 5.9% 86%;
+    --input: 240 5.9% 86%;
+    --ring: 238.7 83.5% 66.7%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
+  }
+
+  /* ========================================================================= */
+  /* DARK MODE (Baseline)                                                      */
+  /* ========================================================================= */
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 6.5%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 4.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 238.7 83.5% 66.7%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 238.7 75% 55%;
+    --primary-700: 238.7 70% 45%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 238.7 83.5% 66.7%;
+  }
+
+  /* ========================================================================= */
+  /* MULTI-PALETTE PRESETS                                                     */
+  /* ========================================================================= */
+
+  /* 1. Zinc (Monochrome / Linear Minimalist) */
+  [data-palette="zinc"] {
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --primary-600: 240 5.9% 18%;
+    --primary-700: 240 5.9% 25%;
+    --ring: 240 5.9% 10%;
+  }
+  .dark[data-palette="zinc"],
+  .dark [data-palette="zinc"] {
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --primary-600: 0 0% 88%;
+    --primary-700: 0 0% 78%;
+    --ring: 0 0% 98%;
+  }
+
+  /* 2. Slate (Cool Enterprise Gray) */
+  [data-palette="slate"] {
+    --primary: 215 25% 27%;
+    --primary-foreground: 210 40% 98%;
+    --primary-600: 215 25% 22%;
+    --primary-700: 215 25% 18%;
+    --ring: 215 25% 27%;
+  }
+  .dark[data-palette="slate"],
+  .dark [data-palette="slate"] {
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-600: 215 20.2% 65.1%;
+    --primary-700: 215 20.2% 55.1%;
+    --ring: 217.2 91.2% 59.8%;
+  }
+
+  /* 3. Indigo (Modern SaaS Blue / Default) */
+  [data-palette="indigo"] {
+    --primary: 238.7 83.5% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 238.7 75% 50%;
+    --primary-700: 238.7 70% 40%;
+    --ring: 238.7 83.5% 66.7%;
+  }
+  .dark[data-palette="indigo"],
+  .dark [data-palette="indigo"] {
+    --primary: 238.7 83.5% 66.7%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 238.7 75% 55%;
+    --primary-700: 238.7 70% 45%;
+    --ring: 238.7 83.5% 66.7%;
+  }
+
+  /* 4. Emerald (Corporate Green) */
+  [data-palette="emerald"] {
+    --primary: 158 64% 39%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 158 64% 32%;
+    --primary-700: 158 64% 26%;
+    --ring: 158 64% 45%;
+  }
+  .dark[data-palette="emerald"],
+  .dark [data-palette="emerald"] {
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --primary-600: 160 84% 32%;
+    --primary-700: 160 84% 26%;
+    --ring: 160 84% 39%;
+  }
+
+  /* 5. Violet (Creative Purple) */
+  [data-palette="violet"] {
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --primary-600: 262.1 83.3% 50%;
+    --primary-700: 262.1 83.3% 42%;
+    --ring: 262.1 83.3% 57.8%;
+  }
+  .dark[data-palette="violet"],
+  .dark [data-palette="violet"] {
+    --primary: 263.4 70% 60.4%;
+    --primary-foreground: 210 20% 98%;
+    --primary-600: 263.4 70% 52%;
+    --primary-700: 263.4 70% 45%;
+    --ring: 263.4 70% 60.4%;
+  }
+
+  /* 6. Rose (Warm Modern Accent) */
+  [data-palette="rose"] {
+    --primary: 346.8 77.2% 49.8%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --primary-600: 346.8 77.2% 42%;
+    --primary-700: 346.8 77.2% 35%;
+    --ring: 346.8 77.2% 49.8%;
+  }
+  .dark[data-palette="rose"],
+  .dark [data-palette="rose"] {
+    --primary: 346.8 77.2% 58%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --primary-600: 346.8 77.2% 48%;
+    --primary-700: 346.8 77.2% 40%;
+    --ring: 346.8 77.2% 58%;
   }
 }
 
 body {
-  background-color: #0b0f19;
-  color: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Glassmorphic Utilities */
+/* Glass Panels */
 .glass-panel {
-  background: rgba(19, 27, 46, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(18, 18, 22, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+:root:not(.dark) .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .glass-card {
-  background: rgba(26, 36, 61, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(24, 24, 27, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+:root:not(.dark) .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* Custom Scrollbar */
+.glass-card:hover {
+  border-color: hsl(var(--primary) / 0.4);
+  box-shadow: 0 10px 35px -10px rgba(0, 0, 0, 0.2), 0 0 15px -3px hsl(var(--primary) / 0.2);
+}
+
+/* Grid overlay background effect */
+.bg-grid-pattern {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+:root:not(.dark) .bg-grid-pattern {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Custom Sleek Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0b0f19;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: hsl(var(--muted-foreground) / 0.5);
 }

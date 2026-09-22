@@ -25,11 +25,11 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50: "#eff6ff",
-          100: "#dbeafe",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
+          50: "hsl(var(--primary-50, var(--primary)))",
+          100: "hsl(var(--primary-100, var(--primary)))",
+          500: "hsl(var(--primary))",
+          600: "hsl(var(--primary-600, var(--primary)))",
+          700: "hsl(var(--primary-700, var(--primary)))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -47,19 +47,18 @@ module.exports = {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        enterprise: {
-          slate: "#0f172a",
-          dark: "#0b0f19",
-          card: "#131b2e",
-          accent: "#6366f1",
-          success: "#10b981",
-          warning: "#f59e0b",
-          danger: "#ef4444",
-          info: "#0ea5e9",
+        zinc: {
+          850: "#1e1e24",
+          900: "#18181b",
+          950: "#09090b",
         },
       },
       borderRadius: {
@@ -68,7 +67,44 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        sans: [
+          "Geist",
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
+        ],
+        mono: [
+          "JetBrains Mono",
+          "SF Mono",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "monospace",
+        ],
+      },
+      boxShadow: {
+        glow: "0 0 20px -5px hsl(var(--primary) / 0.3)",
+        "glow-rose": "0 0 20px -5px rgba(244, 63, 94, 0.25)",
+        "glow-emerald": "0 0 20px -5px rgba(16, 185, 129, 0.25)",
+        "glow-blue": "0 0 20px -5px rgba(59, 130, 246, 0.25)",
+      },
+      animation: {
+        "pulse-subtle": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "fade-in": "fadeIn 0.2s ease-out forwards",
+        shimmer: "shimmer 2s linear infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0, transform: "translateY(4px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
       },
     },
   },

@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.models.department import Department
     from app.models.ticket import Ticket
     from app.models.audit import TicketAuditLog
+    from app.models.attachment import TicketAttachment
 
 
 class UserRole(str, enum.Enum):
@@ -84,6 +85,10 @@ class User(Base):
     audit_logs: Mapped[List["TicketAuditLog"]] = relationship(
         "TicketAuditLog",
         back_populates="actor",
+    )
+    uploaded_attachments: Mapped[List["TicketAttachment"]] = relationship(
+        "TicketAttachment",
+        back_populates="uploader",
     )
 
     def __repr__(self) -> str:

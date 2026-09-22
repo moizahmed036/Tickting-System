@@ -1,9 +1,17 @@
 import {
   AdminUserListResponse,
+  AnalyticsOverviewResponse,
+  ApiKeyCreatedResponse,
+  ApiKeyListResponse,
+  ApiKeyRead,
+  AttachmentListResponse,
   AuditLog,
   AvailableTransition,
   Department,
+  ThirdPartyTicketCreate,
+  ThirdPartyTicketResponse,
   Ticket,
+  TicketAttachment,
   TicketListResponse,
   TicketPriority,
   TicketState,
@@ -186,6 +194,80 @@ class ApiClient {
     return this.request<AuditLog[]>(`/tickets/${id}/audit-trail`);
   }
 
+  async addComment(
+    ticketId: number,
+    data: { comment: string; is_internal: boolean }
+  ): Promise<AuditLog> {
+    return this.request<AuditLog>(`/tickets/${ticketId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // ==========================================
+  // Attachments & Evidence
+  // ==========================================
+  async getAttachments(ticketId: number): Promise<AttachmentListResponse> {
+    return this.request<AttachmentListResponse>(`/tickets/${ticketId}/attachments`);
+  }
+
+  async uploadAttachment(ticketId: number, file: File): Promise<TicketAttachment> {
+    const token = this.getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/tickets/${ticketId}/attachments`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      this.setToken(null);
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+      throw new Error('Unauthorized');
+    }
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || `Upload failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+  async deleteAttachment(attachmentId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/attachments/${attachmentId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  getAttachmentDownloadUrl(attachmentId: number): string {
+    return `${API_BASE_URL}/attachments/${attachmentId}/download`;
+  }
+
+  // ==========================================
+  // Executive Analytics
+  // ==========================================
+  async getAnalyticsOverview(
+    days: number = 30,
+    departmentId?: number
+  ): Promise<AnalyticsOverviewResponse> {
+    const query = new URLSearchParams();
+    query.set('days', days.toString());
+    if (departmentId) {
+      query.set('department_id', departmentId.toString());
+    }
+    return this.request<AnalyticsOverviewResponse>(`/analytics/overview?${query.toString()}`);
+  }
+
   async smartClassifyTicket(data: { title: string; description: string }): Promise<any> {
     return this.request<any>('/ai/smart-classify', {
       method: 'POST',
@@ -274,8 +356,53 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // ==========================================
+  // Developer API Keys & Third-Party Gateway
+  // ==========================================
+  async adminGetApiKeys(): Promise<ApiKeyListResponse> {
+    return this.request<ApiKeyListResponse>('/admin/api-keys');
+  }
+
+  async adminCreateApiKey(data: {
+    name: string;
+    department_id?: number | null;
+  }): Promise<ApiKeyCreatedResponse> {
+    return this.request<ApiKeyCreatedResponse>('/admin/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async adminDeleteApiKey(apiKeyId: number): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/admin/api-keys/${apiKeyId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async createThirdPartyTicket(
+    data: ThirdPartyTicketCreate,
+    apiKey: string
+  ): Promise<ThirdPartyTicketResponse> {
+    const response = await fetch(`${API_BASE_URL}/integrations/tickets`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || `Ingestion failed with status ${response.status}`);
+    }
+
+    return await response.json();
+  }
 }
 
 export const api = new ApiClient();
+
 
 

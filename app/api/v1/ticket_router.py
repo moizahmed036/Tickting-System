@@ -12,12 +12,14 @@ from sqlalchemy.orm import selectinload
 from app.api.deps import get_current_active_user, get_db
 from app.core.config import settings
 from app.core.security import decode_action_token
+from app.core.websocket_manager import ws_manager
 from app.models.audit import AuditAction, TicketAuditLog
 from app.models.department import Department
 from app.models.ticket import Ticket, TicketPriority, TicketState
 from app.models.user import User, UserRole
 from app.schemas.ticket import (
     AuditLogResponse,
+    CommentCreate,
     TicketCreate,
     TicketListResponse,
     TicketResponse,
@@ -221,6 +223,18 @@ async def create_ticket(
             await notification_service.send_ticket_created_notification(full_ticket)
     except Exception as e:
         print(f"Notification error: {e}")
+
+    # Emit real-time WebSocket event to department and admins
+    try:
+        await ws_manager.emit_ticket_event(
+            event_type="NEW_TICKET",
+            ticket=ticket,
+            message=f"New ticket {ticket.ticket_number} created: '{ticket.title}'",
+            actor=current_user,
+            department_code=department.code,
+        )
+    except Exception as e:
+        print(f"WebSocket emit error: {e}")
 
     return TicketResponse.model_validate(full_ticket)
 
@@ -472,6 +486,20 @@ async def update_ticket(
         await db.refresh(ticket)
 
     updated_ticket = await workflow_engine.get_ticket_with_relations(db, ticket.id)
+
+    if diff:
+        try:
+            dept_code = updated_ticket.department.code if updated_ticket.department else "GEN"
+            await ws_manager.emit_ticket_event(
+                event_type="TICKET_UPDATED",
+                ticket=updated_ticket,
+                message=f"Ticket {updated_ticket.ticket_number} updated by {current_user.full_name}",
+                actor=current_user,
+                department_code=dept_code,
+            )
+        except Exception as e:
+            print(f"WebSocket emit error: {e}")
+
     return TicketResponse.model_validate(updated_ticket)
 
 
@@ -494,6 +522,19 @@ async def transition_ticket(
         comment=request.comment,
         metadata_patch=request.metadata_patch,
     )
+
+    try:
+        dept_code = ticket.department.code if ticket.department else "GEN"
+        await ws_manager.emit_ticket_event(
+            event_type="TICKET_UPDATED",
+            ticket=ticket,
+            message=f"Ticket {ticket.ticket_number} transitioned to {ticket.current_state.value}",
+            actor=current_user,
+            department_code=dept_code,
+        )
+    except Exception as e:
+        print(f"WebSocket emit error: {e}")
+
     return TicketResponse.model_validate(ticket)
 
 
@@ -525,6 +566,7 @@ async def get_audit_trail(
 ) -> List[AuditLogResponse]:
     """
     Retrieve the complete, immutable chronological audit log for a ticket.
+    Requesters cannot view internal staff-only notes.
     """
     ticket = await workflow_engine.get_ticket_with_relations(db, ticket_id)
     if not ticket:
@@ -541,6 +583,81 @@ async def get_audit_trail(
         .options(selectinload(TicketAuditLog.actor))
         .order_by(TicketAuditLog.created_at.asc())
     )
+
+    # Requesters cannot see internal staff-only logs or notes
+    if current_user.role == UserRole.REQUESTER:
+        stmt = stmt.where(TicketAuditLog.is_internal == False)
+
     result = await db.execute(stmt)
     logs = result.scalars().all()
     return [AuditLogResponse.model_validate(log) for log in logs]
+
+
+@router.post("/{ticket_id}/comments", response_model=AuditLogResponse, summary="Add public comment or internal staff note")
+async def add_comment(
+    ticket_id: int,
+    comment_in: CommentCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> AuditLogResponse:
+    """
+    Add a public communication comment or an internal staff-only note to a ticket.
+    Requesters can only submit public comments.
+    """
+    ticket = await workflow_engine.get_ticket_with_relations(db, ticket_id)
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ticket with ID {ticket_id} not found",
+        )
+
+    check_ticket_access(ticket, current_user)
+
+    if comment_in.is_internal and current_user.role == UserRole.REQUESTER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Requesters cannot create internal staff-only notes.",
+        )
+
+    now = datetime.now(timezone.utc)
+    audit_log = TicketAuditLog(
+        ticket_id=ticket.id,
+        actor_id=current_user.id,
+        action=AuditAction.COMMENT_ADDED,
+        from_state=ticket.current_state,
+        to_state=ticket.current_state,
+        comment=comment_in.comment.strip(),
+        is_internal=comment_in.is_internal,
+        payload={"is_internal": comment_in.is_internal},
+        created_at=now,
+    )
+    db.add(audit_log)
+    ticket.updated_at = now
+    await db.commit()
+    await db.refresh(audit_log)
+
+    # Load actor relation
+    stmt = (
+        select(TicketAuditLog)
+        .where(TicketAuditLog.id == audit_log.id)
+        .options(selectinload(TicketAuditLog.actor))
+    )
+    res = await db.execute(stmt)
+    full_log = res.scalars().first()
+
+    try:
+        dept_code = ticket.department.code if ticket.department else "GEN"
+        note_type = "Internal note" if comment_in.is_internal else "Comment"
+        await ws_manager.emit_ticket_event(
+            event_type="TICKET_UPDATED",
+            ticket=ticket,
+            message=f"{note_type} added on {ticket.ticket_number} by {current_user.full_name}",
+            actor=current_user,
+            department_code=dept_code,
+            is_internal=comment_in.is_internal,
+        )
+    except Exception as e:
+        print(f"WebSocket emit error: {e}")
+
+    return AuditLogResponse.model_validate(full_log)
+

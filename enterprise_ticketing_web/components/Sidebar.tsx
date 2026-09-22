@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
   LayoutDashboard,
+  BarChart3,
   Server,
   DollarSign,
   Users,
@@ -14,8 +15,11 @@ import {
   Inbox,
   ShieldAlert,
   ShieldCheck,
-  UserCheck,
   ListTodo,
+  Sparkles,
+  ChevronRight,
+  Lock,
+  Key,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
@@ -23,11 +27,11 @@ import { Department } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export const ALL_DEPARTMENT_NAV_ITEMS = [
-  { id: 'all', name: 'All Organization Queues', icon: Inbox, code: null },
+  { id: 'all', name: 'All Department Queues', icon: Inbox, code: null },
   { id: 'IT', name: 'IT Infrastructure', icon: Server, code: 'IT' },
   { id: 'FIN', name: 'Finance & Budget', icon: DollarSign, code: 'FIN' },
   { id: 'HR', name: 'Recruitment & HR', icon: Users, code: 'HR' },
-  { id: 'SD', name: 'ESU / Service Delivery', icon: Briefcase, code: 'SD' },
+  { id: 'SD', name: 'Service Delivery', icon: Briefcase, code: 'SD' },
   { id: 'PROC', name: 'Procurement', icon: ShoppingCart, code: 'PROC' },
 ];
 
@@ -52,7 +56,21 @@ export function Sidebar() {
 
   // Resolve user's assigned department
   const userDept = departments.find((d) => d.id === user?.department_id);
-  const userDeptCode = userDept?.code || (user?.department_id === 1 ? 'SD' : user?.department_id === 2 ? 'HR' : user?.department_id === 3 ? 'FIN' : user?.department_id === 4 ? 'FIN' : user?.department_id === 5 ? 'PROC' : user?.department_id === 6 ? 'IT' : null);
+  const userDeptCode =
+    userDept?.code ||
+    (user?.department_id === 1
+      ? 'SD'
+      : user?.department_id === 2
+      ? 'HR'
+      : user?.department_id === 3
+      ? 'FIN'
+      : user?.department_id === 4
+      ? 'FIN'
+      : user?.department_id === 5
+      ? 'PROC'
+      : user?.department_id === 6
+      ? 'IT'
+      : null);
 
   // Compute allowed department items
   const visibleDeptItems = isAdmin
@@ -60,38 +78,89 @@ export function Sidebar() {
     : ALL_DEPARTMENT_NAV_ITEMS.filter((item) => item.code && item.code === userDeptCode);
 
   return (
-    <aside className="w-64 border-r border-slate-800/80 bg-slate-950/60 p-4 flex flex-col justify-between shrink-0 min-h-[calc(100vh-4rem)]">
-      <div className="space-y-6">
-        {/* Main Navigation */}
+    <aside className="w-60 border-r border-border bg-card/40 p-3 flex flex-col justify-between shrink-0 min-h-[calc(100vh-3.5rem)] select-none">
+      <div className="space-y-5">
+        {/* Section 1: Main Views */}
         <div>
-          <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Navigation</p>
-          <div className="space-y-1">
+          <p className="px-2.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 font-mono">
+            Workspace
+          </p>
+          <div className="space-y-0.5">
+            {/* Overview / Dashboard */}
             <Link
               href="/dashboard"
               className={cn(
-                'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
                 pathname === '/dashboard' && !currentDept && !currentView
-                  ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-600/30 font-semibold'
-                  : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                  ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
               )}
             >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>{isAdmin ? 'Overview Dashboard' : 'My Dashboard'}</span>
+              <div className="flex items-center gap-2.5">
+                <LayoutDashboard
+                  className={cn(
+                    'h-4 w-4 shrink-0 transition-colors',
+                    pathname === '/dashboard' && !currentDept && !currentView
+                      ? 'text-primary'
+                      : 'text-muted-foreground group-hover:text-foreground'
+                  )}
+                />
+                <span>{isAdmin ? 'System Overview' : 'My Dashboard'}</span>
+              </div>
+              {pathname === '/dashboard' && !currentDept && !currentView && (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
+              )}
             </Link>
 
-            {/* My Tasks View for operational roles */}
+            {/* Executive Analytics Hub */}
+            <Link
+              href="/analytics"
+              className={cn(
+                'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
+                pathname === '/analytics'
+                  ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+              )}
+            >
+              <div className="flex items-center gap-2.5">
+                <BarChart3
+                  className={cn(
+                    'h-4 w-4 shrink-0 transition-colors',
+                    pathname === '/analytics'
+                      ? 'text-primary'
+                      : 'text-muted-foreground group-hover:text-foreground'
+                  )}
+                />
+                <span>Executive Analytics</span>
+              </div>
+              {pathname === '/analytics' && (
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
+              )}
+            </Link>
+
+            {/* My Tasks / Requests View */}
             {(isAssignee || isRequester) && (
               <Link
                 href="/dashboard?view=my_tasks"
                 className={cn(
-                  'flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                  'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
                   currentView === 'my_tasks'
-                    ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-600/30 font-semibold'
-                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                    ? 'bg-primary/10 text-primary font-semibold shadow-sm border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 )}
               >
-                <ListTodo className="h-4 w-4 text-cyan-400" />
-                <span>{isRequester ? 'My Requests' : 'My Assigned Tasks'}</span>
+                <div className="flex items-center gap-2.5">
+                  <ListTodo
+                    className={cn(
+                      'h-4 w-4 shrink-0 transition-colors',
+                      currentView === 'my_tasks' ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                    )}
+                  />
+                  <span>{isRequester ? 'My Requests' : 'My Assigned Queue'}</span>
+                </div>
+                {currentView === 'my_tasks' && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-glow" />
+                )}
               </Link>
             )}
 
@@ -100,80 +169,123 @@ export function Sidebar() {
               <Link
                 href="/dashboard?view=approvals"
                 className={cn(
-                  'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                  'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
                   currentView === 'approvals'
-                    ? 'bg-amber-600/15 text-amber-400 border border-amber-600/30 font-semibold'
-                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                    ? 'bg-amber-500/10 text-amber-500 dark:text-amber-300 font-semibold border border-amber-500/30'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 )}
               >
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle className="h-4 w-4 text-amber-400" />
-                  <span>Director Approvals</span>
+                  <CheckCircle
+                    className={cn(
+                      'h-4 w-4 shrink-0 transition-colors',
+                      currentView === 'approvals' ? 'text-amber-500' : 'text-muted-foreground group-hover:text-amber-500'
+                    )}
+                  />
+                  <span>Executive Authorizations</span>
                 </div>
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-950/80 border border-amber-700/50 text-amber-300 font-bold">
+                <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-semibold">
                   Gate
                 </span>
               </Link>
             )}
 
-            {/* Super Admin User Management */}
+            {/* Admin Management */}
             {isAdmin && (
-              <Link
-                href="/admin/users"
-                className={cn(
-                  'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all',
-                  pathname.startsWith('/admin')
-                    ? 'bg-purple-600/15 text-purple-300 border border-purple-600/40 font-semibold'
-                    : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                )}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="h-4 w-4 text-purple-400" />
-                  <span>Admin User Manager</span>
-                </div>
-                <span className="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/80 border border-purple-700/50 text-purple-300 font-bold">
-                  Admin
-                </span>
-              </Link>
+              <>
+                <Link
+                  href="/admin/users"
+                  className={cn(
+                    'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
+                    pathname === '/admin/users'
+                      ? 'bg-purple-500/10 text-purple-600 dark:text-purple-300 font-semibold border border-purple-500/30'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <ShieldCheck
+                      className={cn(
+                        'h-4 w-4 shrink-0 transition-colors',
+                        pathname === '/admin/users' ? 'text-purple-500' : 'text-muted-foreground group-hover:text-purple-500'
+                      )}
+                    />
+                    <span>User Governance</span>
+                  </div>
+                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-purple-500/15 border border-purple-500/30 text-purple-600 dark:text-purple-400 font-semibold">
+                    Admin
+                  </span>
+                </Link>
+
+                <Link
+                  href="/admin/api-keys"
+                  className={cn(
+                    'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
+                    pathname === '/admin/api-keys'
+                      ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 font-semibold border border-cyan-500/30'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                  )}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Key
+                      className={cn(
+                        'h-4 w-4 shrink-0 transition-colors',
+                        pathname === '/admin/api-keys' ? 'text-cyan-500' : 'text-muted-foreground group-hover:text-cyan-500'
+                      )}
+                    />
+                    <span>API & Integrations</span>
+                  </div>
+                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 font-semibold">
+                    Gateway
+                  </span>
+                </Link>
+              </>
             )}
           </div>
         </div>
 
-        {/* Department Queues (Strictly isolated for non-admins) */}
+        {/* Section 2: Department Queues */}
         {visibleDeptItems.length > 0 && (
           <div>
-            <div className="flex items-center justify-between px-3 mb-2">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between px-2.5 mb-1.5">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider font-mono">
                 {isAdmin ? 'Department Queues' : 'Assigned Department'}
               </p>
               {!isAdmin && (
-                <span className="text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-1.5 py-0.2 rounded">
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded font-mono">
                   Isolated
                 </span>
               )}
             </div>
-            <div className="space-y-1">
+
+            <div className="space-y-0.5">
               {visibleDeptItems.map((dept) => {
                 const Icon = dept.icon;
-                const isActive = dept.code ? currentDept === dept.code : !currentDept && !currentView && pathname === '/dashboard';
+                const isActive = dept.code
+                  ? currentDept === dept.code
+                  : !currentDept && !currentView && pathname === '/dashboard';
 
                 return (
                   <Link
                     key={dept.id}
                     href={dept.code ? `/dashboard?dept=${dept.code}` : '/dashboard'}
                     className={cn(
-                      'flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all',
+                      'group relative flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150',
                       isActive
-                        ? 'bg-slate-800/90 text-white border border-slate-700 font-semibold shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                        ? 'bg-primary/10 text-primary font-semibold border border-primary/20 shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                     )}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-indigo-400' : 'text-slate-400')} />
+                      <Icon
+                        className={cn(
+                          'h-4 w-4 shrink-0 transition-colors',
+                          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
+                        )}
+                      />
                       <span className="truncate">{dept.name}</span>
                     </div>
                     {dept.code && (
-                      <span className="text-[10px] text-slate-400 px-1 py-0.5 rounded bg-slate-900 border border-slate-800">
+                      <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground px-1 py-0.2 rounded bg-muted border border-border">
                         {dept.code}
                       </span>
                     )}
@@ -185,18 +297,18 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Role Notice & Security Footer */}
-      <div className="pt-4 border-t border-slate-800/80">
-        <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-2.5">
-          <ShieldAlert className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" />
+      {/* Security & Role Policy Footer */}
+      <div className="pt-3 border-t border-border">
+        <div className="p-2.5 rounded-xl bg-muted/50 border border-border flex items-start gap-2">
+          <ShieldAlert className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
           <div>
-            <p className="text-[11px] font-semibold text-slate-200">
-              {isAdmin ? 'Super Admin Mode' : 'Department Isolation Active'}
+            <p className="text-[11px] font-semibold text-foreground">
+              {isAdmin ? 'Super Admin Mode' : 'Department Scope Active'}
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
               {isAdmin
-                ? 'Full cross-department visibility and role governance active.'
-                : 'Access is restricted to your assigned department boundary.'}
+                ? 'Full cross-department oversight and overrides enabled.'
+                : 'Role isolation enforces queue boundary permissions.'}
             </p>
           </div>
         </div>

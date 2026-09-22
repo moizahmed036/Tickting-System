@@ -39,26 +39,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0b0f19] p-4 relative overflow-hidden">
-      {/* Dynamic Background Glows */}
+    <div className="flex min-h-screen items-center justify-center bg-[#09090b] p-4 relative overflow-hidden bg-grid-pattern">
+      {/* Dynamic Ambient Background Glows */}
       <div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-purple-600/10 blur-[120px] pointer-events-none" />
 
-      <div className="w-full max-w-md space-y-6 z-10">
+      <div className="w-full max-w-md space-y-5 z-10">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white shadow-xl shadow-indigo-600/30">
-            <Layers className="h-6 w-6" />
+          <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white shadow-lg shadow-indigo-600/30">
+            <Layers className="h-5 w-5" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">NexusFlow Enterprise</h1>
-          <p className="text-xs text-slate-400">Sign in to access your role-based ticketing workflow queue</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">NexusFlow</h1>
+          <p className="text-xs text-zinc-400">Enterprise Workflow Automation & Ticketing FSM</p>
         </div>
 
         {/* Login Card */}
-        <div className="glass-panel rounded-2xl border border-slate-800 p-6 shadow-2xl backdrop-blur-xl">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-panel rounded-2xl border border-zinc-800/90 p-6 shadow-2xl backdrop-blur-xl bg-zinc-900/80">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <Input
-              label="Enterprise Email"
+              label="Enterprise Account Email"
               type="text"
               placeholder="name@enterprise.local"
               value={email}
@@ -76,23 +76,23 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+              <div className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2 animate-fade-in">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <Button type="submit" variant="primary" size="lg" className="w-full gap-2 shadow-indigo-600/30" isLoading={loading}>
+            <Button type="submit" variant="primary" size="md" className="w-full gap-2 font-semibold mt-2" isLoading={loading}>
               <span>Authenticate & Sign In</span>
               <ArrowRight className="h-4 w-4" />
             </Button>
           </form>
 
           {/* Quick-Fill Seed Personas */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80">
-            <p className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5 mb-2.5">
+          <div className="mt-5 pt-4 border-t border-zinc-800/80">
+            <p className="text-[11px] font-semibold text-zinc-400 flex items-center gap-1.5 mb-2">
               <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-              1-Click Demo Persona Credentials
+              1-Click Demo Persona Fill
             </p>
 
             <div className="grid grid-cols-2 gap-1.5">
@@ -103,12 +103,12 @@ export default function LoginPage() {
                     key={acc.email}
                     type="button"
                     onClick={() => handleQuickFill(acc.email, acc.password)}
-                    className="text-left px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 hover:border-indigo-500/40 text-[11px] transition-all cursor-pointer group"
+                    className="text-left px-2.5 py-1.5 rounded-lg border border-zinc-800 bg-zinc-950/70 hover:bg-zinc-850 hover:border-indigo-500/40 text-[11px] transition-all cursor-pointer group"
                   >
-                    <div className="font-semibold text-slate-200 group-hover:text-indigo-300 truncate">
+                    <div className="font-semibold text-zinc-200 group-hover:text-indigo-300 truncate">
                       {acc.label}
                     </div>
-                    <div className={cn('text-[9px] font-medium mt-0.5', badge.text)}>{acc.role}</div>
+                    <div className={cn('text-[9px] font-mono mt-0.5', badge.text)}>{acc.role}</div>
                   </button>
                 );
               })}
@@ -117,9 +117,9 @@ export default function LoginPage() {
         </div>
 
         {/* Security Notice */}
-        <div className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500">
+        <div className="flex items-center justify-center gap-2 text-center text-[11px] text-zinc-500 font-mono">
           <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
-          <span>OAuth2 JWT Bearer Auth & Role Isolation Active</span>
+          <span>OAuth2 JWT Security & Strict RBAC Isolation</span>
         </div>
       </div>
     </div>

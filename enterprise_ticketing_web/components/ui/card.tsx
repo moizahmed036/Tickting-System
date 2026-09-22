@@ -5,7 +5,7 @@ export function Card({ className, children, ...props }: React.HTMLAttributes<HTM
   return (
     <div
       className={cn(
-        'glass-card rounded-xl border border-slate-800 bg-slate-900/60 p-5 text-slate-100 shadow-xl transition-all duration-200',
+        'glass-card rounded-xl border border-border bg-card/75 p-5 text-card-foreground shadow-sm transition-all duration-150',
         className
       )}
       {...props}
@@ -17,7 +17,7 @@ export function Card({ className, children, ...props }: React.HTMLAttributes<HTM
 
 export function CardHeader({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('flex flex-col space-y-1.5 pb-4', className)} {...props}>
+    <div className={cn('flex flex-col space-y-1.5 pb-3.5', className)} {...props}>
       {children}
     </div>
   );
@@ -25,7 +25,7 @@ export function CardHeader({ className, children, ...props }: React.HTMLAttribut
 
 export function CardTitle({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn('text-lg font-semibold leading-none tracking-tight text-white', className)} {...props}>
+    <h3 className={cn('text-sm font-semibold tracking-tight text-foreground', className)} {...props}>
       {children}
     </h3>
   );
@@ -33,7 +33,7 @@ export function CardTitle({ className, children, ...props }: React.HTMLAttribute
 
 export function CardDescription({ className, children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn('text-xs text-slate-400', className)} {...props}>
+    <p className={cn('text-xs text-muted-foreground leading-relaxed', className)} {...props}>
       {children}
     </p>
   );
@@ -49,7 +49,7 @@ export function CardContent({ className, children, ...props }: React.HTMLAttribu
 
 export function CardFooter({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('flex items-center pt-4 border-t border-slate-800/80', className)} {...props}>
+    <div className={cn('flex items-center pt-3.5 border-t border-border', className)} {...props}>
       {children}
     </div>
   );

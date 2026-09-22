@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -35,6 +36,7 @@ const ROLES: UserRole[] = ['REQUESTER', 'ASSIGNEE', 'AUTHORIZER', 'OBSERVER', 'A
 export default function SuperAdminUsersPage() {
   const router = useRouter();
   const { user: currentUser, loading: authLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
   const [users, setUsers] = useState<User[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -92,6 +94,7 @@ export default function SuperAdminUsersPage() {
   }, [page, limit, search, selectedDeptFilter, selectedRoleFilter, selectedActiveFilter]);
 
   useEffect(() => {
+    setMounted(true);
     loadDepartments();
   }, [loadDepartments]);
 
@@ -521,23 +524,24 @@ export default function SuperAdminUsersPage() {
       </Card>
 
       {/* Provision User Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-6 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      {isCreateModalOpen && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center overflow-y-auto p-4 sm:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in">
+          <div className="fixed inset-0" onClick={() => setIsCreateModalOpen(false)} aria-hidden="true" />
+          <div className="relative z-10 my-auto w-full max-w-lg max-h-[90vh] flex flex-col rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/40 shrink-0">
               <div className="flex items-center gap-2 text-purple-400 font-bold text-base">
                 <UserPlus className="h-5 w-5" />
                 <span>Provision Enterprise Account</span>
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-slate-400 hover:text-white font-bold"
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="space-y-4">
+            <form onSubmit={handleCreateUser} className="p-6 space-y-4 overflow-y-auto flex-1">
               <Input
                 label="Full Name *"
                 placeholder="e.g. Jordan Miller"
@@ -604,7 +608,7 @@ export default function SuperAdminUsersPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-800 mt-auto shrink-0">
                 <Button
                   type="button"
                   variant="ghost"
@@ -624,7 +628,8 @@ export default function SuperAdminUsersPage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

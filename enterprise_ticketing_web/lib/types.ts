@@ -19,7 +19,11 @@ export type AuditAction =
   | 'ASSIGNED'
   | 'APPROVED'
   | 'REJECTED'
-  | 'COMMENT_ADDED';
+  | 'COMMENT_ADDED'
+  | 'ESCALATED'
+  | 'NOTIFICATION_SENT'
+  | 'ATTACHMENT_ADDED'
+  | 'ATTACHMENT_DELETED';
 
 export interface User {
   id: number;
@@ -62,6 +66,23 @@ export interface Ticket {
   department?: Department | null;
 }
 
+export interface TicketAttachment {
+  id: number;
+  ticket_id: number;
+  uploader_id?: number | null;
+  filename: string;
+  file_size: number;
+  content_type: string;
+  storage_path: string;
+  created_at: string;
+  uploader?: User | null;
+}
+
+export interface AttachmentListResponse {
+  total: number;
+  items: TicketAttachment[];
+}
+
 export interface WorkflowStep {
   id: number;
   department_id: number;
@@ -94,9 +115,57 @@ export interface AuditLog {
   from_state?: TicketState | null;
   to_state?: TicketState | null;
   comment?: string | null;
+  is_internal?: boolean;
   payload: Record<string, any>;
   created_at: string;
   actor?: User | null;
+}
+
+export interface DepartmentMetrics {
+  department_id: number;
+  department_code: string;
+  department_name: string;
+  total_tickets: number;
+  resolved_tickets: number;
+  active_tickets: number;
+  mttr_hours: number;
+  sla_compliance_rate: number;
+}
+
+export interface TimeSeriesDataPoint {
+  date: string;
+  created_count: number;
+  resolved_count: number;
+  escalated_count: number;
+}
+
+export interface AnalyticsOverviewResponse {
+  total_tickets: number;
+  active_backlog: number;
+  resolved_tickets: number;
+  sla_compliance_rate: number;
+  overall_mttr_hours: number;
+  escalation_rate: number;
+  priority_distribution: Record<string, number>;
+  status_distribution: Record<string, number>;
+  department_breakdown: DepartmentMetrics[];
+  time_series: TimeSeriesDataPoint[];
+  timeframe_days: number;
+}
+
+export interface WebSocketEventPayload {
+  type: 'TICKET_UPDATED' | 'NEW_TICKET' | 'SLA_BREACH' | 'ATTACHMENT_ADDED' | 'COMMENT_ADDED';
+  ticket_id: number;
+  ticket_number: string;
+  title?: string;
+  department_id?: number;
+  department_code?: string;
+  priority?: string;
+  state?: string;
+  message: string;
+  actor_name?: string;
+  is_internal?: boolean;
+  timestamp: string;
 }
 
 export interface TicketListResponse {
@@ -186,4 +255,71 @@ export interface AdminUserListResponse {
   page: number;
   limit: number;
 }
+
+export interface ApiKeyRead {
+  id: number;
+  name: string;
+  key_prefix: string;
+  department_id?: number | null;
+  department_code?: string | null;
+  department_name?: string | null;
+  created_by_id: number;
+  created_by_name?: string | null;
+  is_active: boolean;
+  last_used_at?: string | null;
+  created_at: string;
+}
+
+export interface ApiKeyCreatedResponse {
+  api_key: ApiKeyRead;
+  raw_secret_key: string;
+  message: string;
+}
+
+export interface ApiKeyListResponse {
+  items: ApiKeyRead[];
+  total: number;
+}
+
+export interface ThirdPartyTicketCreate {
+  sender_email: string;
+  sender_name?: string;
+  title: string;
+  description: string;
+  department_code?: string;
+  priority?: TicketPriority;
+  metadata?: Record<string, any>;
+  source_system?: string;
+}
+
+export interface ThirdPartyTicketResponse {
+  ticket_id: number;
+  ticket_number: string;
+  current_state: TicketState;
+  status: string;
+  department_code: string;
+  priority: TicketPriority;
+  due_date?: string | null;
+  created_at: string;
+}
+
+export interface ExternalEmailIngestPayload {
+  from_email: string;
+  from_name?: string;
+  to_email: string;
+  subject: string;
+  body_text: string;
+  body_html?: string;
+  message_id?: string;
+}
+
+export interface ExternalEmailIngestResponse {
+  status: string;
+  message: string;
+  ticket_id: number;
+  ticket_number: string;
+  department_code: string;
+  action: string;
+}
+
 

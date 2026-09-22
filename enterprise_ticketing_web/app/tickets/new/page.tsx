@@ -20,13 +20,14 @@ import { Department, TicketPriority } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input, Textarea, Select } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 const PRIORITIES: { value: TicketPriority; label: string; desc: string; color: string }[] = [
-  { value: 'LOW', label: 'Low', desc: 'Standard non-urgent inquiry', color: 'text-slate-400' },
+  { value: 'LOW', label: 'Low', desc: 'Standard non-urgent inquiry', color: 'text-zinc-400' },
   { value: 'MEDIUM', label: 'Medium', desc: 'Routine department task', color: 'text-blue-400' },
-  { value: 'HIGH', label: 'High', desc: 'Business impact requiring prompt review', color: 'text-amber-400' },
+  { value: 'HIGH', label: 'High', desc: 'Business impact requiring review', color: 'text-amber-400' },
   { value: 'URGENT', label: 'Urgent', desc: 'Blocks operational workflow', color: 'text-orange-400' },
-  { value: 'CRITICAL', label: 'Critical', desc: 'Severe outage or director clearance', color: 'text-rose-400' },
+  { value: 'CRITICAL', label: 'Critical', desc: 'Severe outage or clearance', color: 'text-rose-400' },
 ];
 
 export default function NewTicketPage() {
@@ -39,11 +40,11 @@ export default function NewTicketPage() {
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TicketPriority>('MEDIUM');
 
-  // IT Specific Technical Fields (Mandatory when IT department is selected)
+  // IT Specific Technical Diagnostics
   const [itAssetType, setItAssetType] = useState<string>('Hardware');
   const [itSystemImpact, setItSystemImpact] = useState<string>('Single User');
   const [itStepsToReproduce, setItStepsToReproduce] = useState<string>('');
-  
+
   // Custom Metadata Key-Values
   const [metaKey, setMetaKey] = useState('');
   const [metaValue, setMetaValue] = useState('');
@@ -70,7 +71,6 @@ export default function NewTicketPage() {
     loadDepartments();
   }, []);
 
-  // Determine if currently selected department is IT
   const selectedDept = departments.find((d) => d.id === Number(departmentId));
   const isItDepartment = selectedDept?.code === 'IT';
 
@@ -153,18 +153,15 @@ export default function NewTicketPage() {
       });
       setTriageResult(res);
 
-      // Auto-select department
       const matchingDept = departments.find((d) => d.code === res.suggested_department_code);
       if (matchingDept) {
         setDepartmentId(matchingDept.id);
       }
 
-      // Auto-select priority
       if (res.suggested_priority) {
         setPriority(res.suggested_priority);
       }
 
-      // Pre-fill entities / tags into metadata if found
       if (res.key_entities && Object.keys(res.key_entities).length > 0) {
         const newEntries = Object.entries(res.key_entities).map(([k, v]) => ({
           key: k,
@@ -180,27 +177,27 @@ export default function NewTicketPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Top Header */}
+    <div className="max-w-3xl mx-auto space-y-5">
+      {/* Top Breadcrumb */}
       <div className="flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           <span>Back to Dashboard</span>
         </Link>
       </div>
 
-      <Card className="bg-slate-900/80 border-slate-800 shadow-2xl">
-        <CardHeader className="border-b border-slate-800 pb-4 flex flex-row items-center justify-between">
+      <Card className="bg-zinc-900/80 border-zinc-800/80 shadow-2xl backdrop-blur-xl">
+        <CardHeader className="border-b border-zinc-800/80 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 text-indigo-400">
-              <FilePlus className="h-5 w-5" />
-              <CardTitle className="text-lg">Create Enterprise Service Ticket</CardTitle>
+              <FilePlus className="h-4 w-4" />
+              <CardTitle className="text-base">Create Enterprise Service Ticket</CardTitle>
             </div>
-            <CardDescription>
-              Initiate a new request, budget requisition, bug report, or recruitment requisition across department queues.
+            <CardDescription className="text-xs text-zinc-400 mt-0.5">
+              Initiate a service requisition, budget request, incident report, or recruitment requisition.
             </CardDescription>
           </div>
 
@@ -210,35 +207,35 @@ export default function NewTicketPage() {
             variant="secondary"
             onClick={handleAiTriage}
             isLoading={triageLoading}
-            className="gap-1.5 border-indigo-600/50 bg-indigo-950/60 text-indigo-300 hover:bg-indigo-900/60 shadow-sm"
+            className="gap-1.5 border-indigo-500/30 bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/20 text-xs shrink-0"
           >
             <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-            <span>AI Auto-Triage & Suggest</span>
+            <span>AI Auto-Triage</span>
           </Button>
         </CardHeader>
 
         {triageResult && (
-          <div className="mx-6 mt-4 p-3 rounded-xl bg-indigo-950/70 border border-indigo-700/50 text-xs text-indigo-200 space-y-1">
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/25 text-xs text-indigo-200 space-y-1 animate-fade-in">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-white flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
                 AI Triage Suggestion ({Math.round(triageResult.confidence_score * 100)}% confidence)
               </span>
               <span className="text-[11px] text-indigo-300 font-mono">
-                Target Queue: [{triageResult.suggested_department_code}] • Priority: {triageResult.suggested_priority}
+                Queue: [{triageResult.suggested_department_code}] • Priority: {triageResult.suggested_priority}
               </span>
             </div>
-            <p className="text-slate-300 text-[11px] italic mt-1">&ldquo;{triageResult.suggested_first_response}&rdquo;</p>
+            <p className="text-zinc-300 text-[11px] italic mt-1">&ldquo;{triageResult.suggested_first_response}&rdquo;</p>
           </div>
         )}
 
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="pt-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Department Selection */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+              <label className="text-xs font-medium text-zinc-300 flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5 text-indigo-400" />
-                Target Department Queue
+                Destination Department Queue
               </label>
               <Select
                 value={departmentId}
@@ -254,44 +251,44 @@ export default function NewTicketPage() {
               </Select>
             </div>
 
-            {/* IT Specific Mandatory Technical Fields */}
+            {/* IT Specific Mandatory Diagnostics */}
             {isItDepartment && (
-              <div className="p-4 rounded-xl bg-cyan-950/40 border border-cyan-700/50 space-y-4 animate-in fade-in duration-300">
+              <div className="p-4 rounded-xl bg-cyan-950/30 border border-cyan-700/40 space-y-3.5 animate-fade-in">
                 <div className="flex items-center justify-between border-b border-cyan-800/40 pb-2">
                   <div className="flex items-center gap-2 text-cyan-400 font-semibold text-xs">
-                    <Sparkles className="h-4 w-4" />
-                    <span>IT Support Technical Diagnostics (Mandatory)</span>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>IT Technical Diagnostics (Mandatory)</span>
                   </div>
-                  <span className="text-[10px] text-cyan-300 bg-cyan-900/60 border border-cyan-700/50 px-2 py-0.5 rounded font-mono">
-                    IT-Support Policy Active
+                  <span className="text-[10px] text-cyan-300 bg-cyan-900/60 border border-cyan-700/50 px-2 py-0.2 rounded font-mono">
+                    IT-Support Policy
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-cyan-200">Asset / Infrastructure Type *</label>
+                    <label className="text-xs font-medium text-cyan-200">Asset Type *</label>
                     <Select
                       value={itAssetType}
                       onChange={(e) => setItAssetType(e.target.value)}
                       required
                     >
-                      <option value="Hardware">Hardware (Laptops, Desktops, Servers, Monitors)</option>
-                      <option value="Software">Software (OS, SaaS Tools, IDEs, VPN Client)</option>
-                      <option value="Network">Network (Office WiFi, Gateway, DNS, Firewalls)</option>
-                      <option value="Access Permission">Access Permission (GitHub, AWS, SSO, Vault)</option>
+                      <option value="Hardware">Hardware (Laptops, Servers, Monitors)</option>
+                      <option value="Software">Software (OS, SaaS, IDEs, VPN)</option>
+                      <option value="Network">Network (WiFi, Gateway, Firewalls)</option>
+                      <option value="Access Permission">Access Permission (GitHub, AWS, SSO)</option>
                     </Select>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-cyan-200">System Impact Scope *</label>
+                    <label className="text-xs font-medium text-cyan-200">Impact Scope *</label>
                     <Select
                       value={itSystemImpact}
                       onChange={(e) => setItSystemImpact(e.target.value)}
                       required
                     >
-                      <option value="Single User">Single User (Isolated to one workstation)</option>
-                      <option value="Department-wide">Department-wide (Affecting multiple team members)</option>
-                      <option value="Organization-wide">Organization-wide (Critical business downtime)</option>
+                      <option value="Single User">Single User (Isolated)</option>
+                      <option value="Department-wide">Department-wide (Team blocked)</option>
+                      <option value="Organization-wide">Organization-wide (Critical outage)</option>
                     </Select>
                   </div>
                 </div>
@@ -299,12 +296,12 @@ export default function NewTicketPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-cyan-200">Steps to Reproduce Issue *</label>
                   <Textarea
-                    placeholder="1. Connected to corporate VPN&#10;2. Opened internal staging server URL&#10;3. Received Error 504 Gateway Timeout..."
+                    placeholder="1. Connected to corporate VPN&#10;2. Opened internal staging cluster&#10;3. Encountered 504 Gateway Timeout..."
                     value={itStepsToReproduce}
                     onChange={(e) => setItStepsToReproduce(e.target.value)}
                     rows={3}
                     required
-                    className="border-cyan-800/70 bg-slate-950/90 text-white placeholder:text-slate-500 text-xs font-mono"
+                    className="border-cyan-800/70 bg-zinc-950 text-white placeholder:text-zinc-600 text-xs font-mono"
                   />
                 </div>
               </div>
@@ -312,7 +309,7 @@ export default function NewTicketPage() {
 
             {/* Title */}
             <Input
-              label="Request Title / Summary"
+              label="Request Title"
               placeholder="e.g. Q3 Vendor Disbursement Authorization or Cloud Cluster Outage"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -321,8 +318,8 @@ export default function NewTicketPage() {
             />
 
             {/* Priority Selector */}
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-300">Priority Level</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-zinc-300">Priority Level</label>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {PRIORITIES.map((p) => {
                   const isSelected = priority === p.value;
@@ -331,14 +328,15 @@ export default function NewTicketPage() {
                       key={p.value}
                       type="button"
                       onClick={() => setPriority(p.value)}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      className={cn(
+                        'p-2.5 rounded-xl border text-left transition-all cursor-pointer select-none',
                         isSelected
-                          ? 'bg-indigo-950/80 border-indigo-500 ring-1 ring-indigo-500'
-                          : 'bg-slate-900 border-slate-800 hover:border-slate-700'
-                      }`}
+                          ? 'bg-zinc-800 border-zinc-600 ring-1 ring-indigo-500/50 shadow-sm'
+                          : 'bg-zinc-950/60 border-zinc-850 hover:border-zinc-750'
+                      )}
                     >
-                      <div className={`text-xs font-bold ${p.color}`}>{p.label}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">{p.desc}</div>
+                      <div className={cn('text-xs font-bold', p.color)}>{p.label}</div>
+                      <div className="text-[10px] text-zinc-500 mt-0.5 line-clamp-1">{p.desc}</div>
                     </button>
                   );
                 })}
@@ -348,41 +346,41 @@ export default function NewTicketPage() {
             {/* Description */}
             <Textarea
               label="Detailed Description & Justification"
-              placeholder="Provide complete context, business impact, itemized budget, or troubleshooting steps..."
+              placeholder="Provide complete business context, itemized budget, or troubleshooting details..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={5}
+              rows={4}
               required
               minLength={5}
             />
 
             {/* Dynamic Metadata Attributes */}
-            <div className="space-y-3 pt-3 border-t border-slate-800">
+            <div className="space-y-2.5 pt-3 border-t border-zinc-800/80">
               <div>
-                <label className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <label className="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
                   Custom Metadata & Workflow Attributes (Optional)
                 </label>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Attach structured data for FSM condition evaluation (e.g. `budget_amount`, `vendor_name`, `server_count`).
+                <p className="text-[11px] text-zinc-500 mt-0.5">
+                  Attach structured data for FSM condition evaluation (e.g. `budget_amount`, `vendor_name`).
                 </p>
               </div>
 
               <div className="flex items-center gap-2">
                 <input
-                  placeholder="Field Key (e.g. budget_amount)"
+                  placeholder="Key (e.g. budget_amount)"
                   value={metaKey}
                   onChange={(e) => setMetaKey(e.target.value)}
-                  className="flex h-9 w-1/2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1 text-xs text-white"
+                  className="flex h-8 w-1/2 rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
                 />
                 <input
-                  placeholder="Field Value (e.g. 15000)"
+                  placeholder="Value (e.g. 15000)"
                   value={metaValue}
                   onChange={(e) => setMetaValue(e.target.value)}
-                  className="flex h-9 w-1/2 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1 text-xs text-white"
+                  className="flex h-8 w-1/2 rounded-lg border border-zinc-800 bg-zinc-950 px-2.5 py-1 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500"
                 />
                 <Button type="button" size="sm" variant="secondary" onClick={handleAddMetadata}>
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                 </Button>
               </div>
 
@@ -391,14 +389,14 @@ export default function NewTicketPage() {
                   {metadataList.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs"
+                      className="flex items-center justify-between p-2 rounded-lg bg-zinc-950 border border-zinc-850 text-xs"
                     >
                       <span className="font-mono text-indigo-400 font-semibold">{item.key}:</span>
-                      <span className="text-slate-200 truncate max-w-[140px]">{item.value}</span>
+                      <span className="text-zinc-200 truncate max-w-[130px]">{item.value}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveMetadata(idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1"
+                        className="text-zinc-500 hover:text-rose-400 p-1 cursor-pointer"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -409,20 +407,20 @@ export default function NewTicketPage() {
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
+              <div className="p-2.5 rounded-lg bg-rose-950/80 border border-rose-800 text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Submit Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-800/80">
               <Link href="/dashboard">
                 <Button type="button" variant="ghost">
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" variant="primary" size="lg" isLoading={loading} className="gap-2 shadow-indigo-600/30">
+              <Button type="submit" variant="primary" size="md" isLoading={loading} className="gap-2 font-semibold">
                 <FilePlus className="h-4 w-4" />
                 <span>Submit Ticket</span>
               </Button>
